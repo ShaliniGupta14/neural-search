@@ -1,0 +1,11 @@
+[project]
+name = "neural-search"
+version = "1.0.0"
+description = "Dense retrieval + cross-encoder reranking over BEIR SciFact, served with FastAPI."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]

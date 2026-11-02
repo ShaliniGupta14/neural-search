@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+
+# Generated artifacts (rebuild with: python -m scripts.build_index)
+data/*
+!data/.gitkeep

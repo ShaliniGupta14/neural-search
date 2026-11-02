@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Search · SciFact</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --border: #e2e0da;
+  --text: #0b0b0b;
+  --text-2: #52514e;
+  --text-3: #7a7973;
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --good: #006300;
+  --bad: #b42323;
+  --relevant-bg: #e3f3e3;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #33332f;
+    --text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e86;
+    --accent: #3987e5; --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    --good: #5fcf5f; --bad: #ff8a80; --relevant-bg: #1d3320;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface: #1a1a19; --surface-2: #232321; --border: #33332f;
+  --text: #f0efec; --text-2: #c3c2b7; --text-3: #8f8e86;
+  --accent: #3987e5; --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+  --good: #5fcf5f; --bad: #ff8a80; --relevant-bg: #1d3320;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 20px; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+h1 span { color: var(--text-3); font-weight: 500; }
+h2 { font-size: 17px; margin: 0 0 4px; }
+h3 { font-size: 14px; margin: 0 0 8px; color: var(--text-2); font-weight: 600; }
+.sub { color: var(--text-2); font-size: 13px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { background: none; border: 0; padding: 10px 14px; font: inherit; color: var(--text-2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.searchbar { display: flex; gap: 8px; }
+.searchbar input { flex: 1; min-width: 0; padding: 11px 14px; font: inherit; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.searchbar input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+button.primary { padding: 0 18px; font: inherit; font-weight: 600; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
+button.primary:disabled { opacity: .6; cursor: progress; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--text-2); }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { background: var(--surface); border: 0; padding: 6px 12px; font: inherit; color: var(--text-2); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { font: inherit; font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); cursor: pointer; }
+.chip:hover { color: var(--text); border-color: var(--text-3); }
+.cols { display: grid; gap: 16px; margin-top: 16px; }
+.cols.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.colhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.latency { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-2); }
+.stagebar { display: flex; gap: 2px; height: 8px; margin: 6px 0 4px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
+.stagebar span { display: block; height: 100%; min-width: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+ol.results { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+.result { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--surface); }
+.rhead { display: flex; gap: 10px; align-items: baseline; }
+.rank { font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; min-width: 1.6em; }
+.rtitle { font-weight: 600; flex: 1; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text-3); margin: 4px 0 0 2.2em; font-variant-numeric: tabular-nums; }
+.move.up { color: var(--good); font-weight: 600; }
+.move.down { color: var(--bad); }
+.snippet { margin: 6px 0 0 2.2em; font-size: 13.5px; color: var(--text-2); }
+.snippet.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+.empty, .error { color: var(--text-2); font-size: 14px; padding: 24px 0; text-align: center; }
+.error { color: var(--bad); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.stat .v { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .l { font-size: 12.5px; color: var(--text-2); }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin-bottom: 16px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-2); font-weight: 600; }
+td.best { font-weight: 700; }
+svg text { fill: var(--text-2); font-size: 11.5px; }
+svg .val { fill: var(--text); font-weight: 600; }
+svg .grid { stroke: var(--border); }
+.tip { position: fixed; pointer-events: none; background: var(--text); color: var(--bg); font-size: 12px; padding: 6px 8px; border-radius: 6px; opacity: 0; transition: opacity .1s; z-index: 10; max-width: 260px; }
+.example { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.example:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.mini { list-style: none; padding: 0; margin: 4px 0 0; font-size: 13px; }
+.mini li { padding: 3px 6px; border-radius: 4px; display: flex; gap: 8px; }
+.mini li.rel { background: var(--relevant-bg); }
+.mini .t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag { font-size: 11px; font-weight: 600; color: var(--good); }
+footer { margin-top: 32px; font-size: 12px; color: var(--text-3); }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Neural Search <span>· SciFact</span></h1>
+    <div class="sub" id="health">Connecting…</div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="search">Search</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="results">Evaluation &amp; benchmarks</button>
+  </nav>
+
+  <section id="tab-search">
+    <div class="card">
+      <form class="searchbar" id="form">
+        <input id="q" type="search" autocomplete="off" placeholder="Ask a scientific question or state a claim…" value="Does vitamin D reduce fracture risk?" aria-label="Query">
+        <button class="primary" id="go" type="submit">Search</button>
+      </form>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Mode">
+          <button type="button" data-mode="dense" aria-pressed="false">Dense only</button>
+          <button type="button" data-mode="rerank" aria-pressed="false">Reranked</button>
+          <button type="button" data-mode="compare" aria-pressed="true">Compare</button>
+        </div>
+        <label>Top-K <select id="topk"><option>5</option><option selected>10</option><option>20</option></select></label>
+        <label>Rerank pool <select id="pool"><option selected>20</option><option>50</option><option>100</option></select></label>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div id="out" class="cols"></div>
+  </section>
+
+  <section id="tab-results" hidden>
+    <div id="results-body"><div class="empty">Loading results…</div></div>
+  </section>
+
+  <footer>
+    Bi-encoder <code>all-MiniLM-L6-v2</code> + FAISS <code>IndexFlatIP</code>, reranked by cross-encoder
+    <code>ms-marco-MiniLM-L-6-v2</code>. API docs at <a href="/docs">/docs</a>.
+  </footer>
+</div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ms = (v) => (v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2)) + " ms";
+const pct = (v) => (v * 100).toFixed(1) + "%";
+
+const EXAMPLES = [
+  "Does vitamin D reduce fracture risk?",
+  "Smoking increases the risk of lung cancer",
+  "Statins lower cardiovascular mortality",
+  "Gut microbiota influence obesity",
+  "Aspirin prevents colorectal cancer",
+  "CRISPR gene editing off-target effects",
+];
+let mode = "compare";
+
+// ---------- tabs ----------
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", x === t));
+  $("#tab-search").hidden = t.dataset.tab !== "search";
+  $("#tab-results").hidden = t.dataset.tab !== "results";
+}));
+
+// ---------- health ----------
+fetch("/health").then((r) => r.json()).then((h) => {
+  $("#health").textContent = `${h.num_documents.toLocaleString()} documents · embedder on ${h.devices.embedder} · reranker on ${h.devices.reranker ?? "—"}`;
+}).catch(() => { $("#health").textContent = "API unreachable"; });
+
+// ---------- search ----------
+$("#chips").innerHTML = EXAMPLES.map((q) => `<button class="chip" type="button">${esc(q)}</button>`).join("");
+$("#chips").addEventListener("click", (e) => {
+  if (e.target.classList.contains("chip")) { $("#q").value = e.target.textContent; run(); }
+});
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  run();
+}));
+$("#form").addEventListener("submit", (e) => { e.preventDefault(); run(); });
+$("#topk").addEventListener("change", run);
+$("#pool").addEventListener("change", run);
+
+async function search(rerank) {
+  const body = { query: $("#q").value, top_k: +$("#topk").value, rerank, candidates: +$("#pool").value };
+  const r = await fetch("/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await r.json();
+  if (!r.ok) {
+    const d = data.detail;
+    throw new Error(Array.isArray(d) ? d.map((x) => x.msg).join("; ") : d || r.statusText);
+  }
+  return data;
+}
+
+const STAGES = [["encode_ms", "Query embedding", "--series-1"], ["retrieval_ms", "FAISS search", "--series-2"], ["rerank_ms", "Cross-encoder", "--series-3"]];
+
+function stageBar(t) {
+  const total = t.total_ms;
+  const segs = STAGES.filter(([k]) => t[k] != null).map(([k, label, c]) =>
+    `<span style="flex:${Math.max(t[k], total * 0.004)};background:var(${c})" data-tip="${esc(label)}: ${ms(t[k])}"></span>`).join("");
+  const legend = STAGES.filter(([k]) => t[k] != null).map(([k, label, c]) =>
+    `<span><i style="background:var(${c})"></i>${label} ${ms(t[k])}</span>`).join("");
+  return `<div class="stagebar" role="img" aria-label="Latency by stage">${segs}</div><div class="legend">${legend}</div>`;
+}
+
+function renderColumn(title, data) {
+  const items = data.results.map((r) => {
+    let move = "";
+    if (data.reranked) {
+      const d = r.dense_rank - r.rank;
+      move = d > 0 ? `<span class="move up">▲ ${d} (dense #${r.dense_rank})</span>`
+           : d < 0 ? `<span class="move down">▼ ${-d} (dense #${r.dense_rank})</span>`
+           : `<span>= dense #${r.dense_rank}</span>`;
+    }
+    const scores = data.reranked
+      ? `<span>rerank ${r.rerank_score.toFixed(3)}</span><span>cosine ${r.dense_score.toFixed(3)}</span>`
+      : `<span>cosine ${r.dense_score.toFixed(3)}</span>`;
+    return `<li class="result">
+      <div class="rhead"><span class="rank">${r.rank}</span><span class="rtitle">${esc(r.title || "(untitled)")}</span></div>
+      <div class="meta">${move}${scores}<span>doc ${esc(r.document_id)}</span></div>
+      <div class="snippet clamp" title="Click to expand">${esc(r.text)}</div>
+    </li>`;
+  }).join("");
+  return `<div class="card">
+    <div class="colhead"><h2>${title}</h2><span class="latency">${ms(data.latency_ms)} total</span></div>
+    ${stageBar(data.timings_ms)}
+    <ol class="results">${items}</ol>
+  </div>`;
+}
+
+let seq = 0;
+async function run() {
+  const q = $("#q").value.trim();
+  const out = $("#out");
+  if (!q) { out.className = "cols"; out.innerHTML = `<div class="error">Enter a query.</div>`; return; }
+  const id = ++seq;
+  $("#go").disabled = true;
+  try {
+    const modes = mode === "compare" ? [false, true] : [mode === "rerank"];
+    // Sequential, not parallel, so the two latency measurements don't contend for the CPU.
+    const results = [];
+    for (const m of modes) results.push(await search(m));
+    if (id !== seq) return;
+    out.className = "cols" + (results.length > 1 ? " two" : "");
+    out.innerHTML = results.map((d) => renderColumn(d.reranked ? `Dense + cross-encoder rerank` : "Dense retrieval", d)).join("");
+  } catch (err) {
+    if (id === seq) { out.className = "cols"; out.innerHTML = `<div class="error">${esc(err.message)}</div>`; }
+  } finally {
+    if (id === seq) $("#go").disabled = false;
+  }
+}
+$("#out").addEventListener("click", (e) => { if (e.target.classList.contains("snippet")) e.target.classList.toggle("clamp"); });
+
+// ---------- tooltip ----------
+const tip = $("#tip");
+document.addEventListener("pointermove", (e) => {
+  const el = e.target.closest("[data-tip]");
+  if (!el) { tip.style.opacity = 0; return; }
+  tip.textContent = el.dataset.tip;
+  tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+  tip.style.opacity = 1;
+});
+
+// ---------- results tab ----------
+function shortName(c) {
+  return c.reranked ? `Rerank (pool ${c.candidates})` : "Dense only";
+}
+
+function qualityChart(rows) {
+  // Grouped horizontal bars: MRR@10 and nDCG@10 per configuration.
+  const metrics = [["mrr@10", "MRR@10", "--series-1"], ["ndcg@10", "nDCG@10", "--series-2"]];
+  const W = 460, labelW = 120, barH = 12, gap = 2, groupGap = 18, top = 8;
+  const max = Math.max(...rows.flatMap((r) => metrics.map(([k]) => r[k])));
+  const scale = (v) => (v / Math.ceil(max * 10) * 10) * (W - labelW - 50);
+  const groupH = metrics.length * (barH + gap) - gap;
+  const H = top + rows.length * (groupH + groupGap);
+  let svg = "";
+  rows.forEach((r, i) => {
+    const y0 = top + i * (groupH + groupGap);
+    svg += `<text x="0" y="${y0 + groupH / 2 + 4}">${esc(shortName(r))}</text>`;
+    metrics.forEach(([k, label, c], j) => {
+      const y = y0 + j * (barH + gap), w = Math.max(scale(r[k]), 2);
+      svg += `<path d="M${labelW},${y} h${w - 4} a4,4 0 0 1 4,4 v${barH - 8} a4,4 0 0 1 -4,4 h${-(w - 4)} z" fill="var(${c})" data-tip="${esc(shortName(r))} · ${label}: ${r[k].toFixed(4)}"/>`;
+      svg += `<text class="val" x="${labelW + w + 6}" y="${y + barH - 2}">${r[k].toFixed(3)}</text>`;
+    });
+  });
+  const legend = metrics.map(([, l, c]) => `<span><i style="background:var(${c})"></i>${l}</span>`).join("");
+  return `<div class="legend" style="margin-bottom:8px">${legend}</div>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="MRR@10 and nDCG@10 by configuration">${svg}</svg>`;
+}
+
+function tradeoffChart(rows) {
+  // Quality vs. median latency, log-scaled x because latency spans two orders of magnitude.
+  const W = 460, H = 240, L = 44, R = 16, T = 12, B = 34;
+  const xs = rows.map((r) => r.p50_ms), ys = rows.map((r) => r["mrr@10"]);
+  const x0 = Math.log10(Math.min(...xs) / 2), x1 = Math.log10(Math.max(...xs) * 2);
+  const y0 = Math.floor(Math.min(...ys) * 20) / 20 - 0.05, y1 = Math.ceil(Math.max(...ys) * 20) / 20 + 0.02;
+  const px = (v) => L + (Math.log10(v) - x0) / (x1 - x0) * (W - L - R);
+  const py = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  let svg = "";
+  for (let d = Math.ceil(x0); d <= Math.floor(x1); d++) {
+    const v = 10 ** d, x = px(v);
+    svg += `<line class="grid" x1="${x}" x2="${x}" y1="${T}" y2="${H - B}"/><text x="${x}" y="${H - B + 16}" text-anchor="middle">${v >= 1000 ? v / 1000 + " s" : v + " ms"}</text>`;
+  }
+  for (let v = Math.ceil(y0 * 20) / 20; v <= y1 + 1e-9; v += 0.05) {
+    const y = py(v);
+    svg += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y}" y2="${y}"/><text x="${L - 6}" y="${y + 4}" text-anchor="end">${v.toFixed(2)}</text>`;
+  }
+  svg += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">p50 latency per query (log scale)</text>`;
+  const pts = rows.map((r) => [px(r.p50_ms), py(r["mrr@10"]), r]);
+  svg += `<polyline points="${pts.map(([x, y]) => `${x},${y}`).join(" ")}" fill="none" stroke="var(--series-1)" stroke-width="2" opacity=".5"/>`;
+  pts.forEach(([x, y, r]) => {
+    svg += `<circle cx="${x}" cy="${y}" r="5" fill="var(--series-1)" stroke="var(--surface)" stroke-width="2"/>`;
+    svg += `<circle cx="${x}" cy="${y}" r="14" fill="transparent" data-tip="${esc(shortName(r))} · MRR@10 ${r["mrr@10"].toFixed(4)} · p50 ${ms(r.p50_ms)}"/>`;
+    svg += `<text class="val" x="${x}" y="${y - 10}" text-anchor="middle">${esc(shortName(r))}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="MRR@10 versus p50 latency">${svg}</svg>`;
+}
+
+function evalTable(rows) {
+  const cols = [["recall@1", "R@1"], ["recall@5", "R@5"], ["recall@10", "R@10"], ["mrr@10", "MRR@10"], ["ndcg@10", "nDCG@10"]];
+  const best = Object.fromEntries(cols.map(([k]) => [k, Math.max(...rows.map((r) => r[k]))]));
+  const head = `<tr><th>Configuration</th>${cols.map(([, l]) => `<th>${l}</th>`).join("")}<th>Mean</th><th>p50</th><th>p95</th></tr>`;
+  const body = rows.map((r) => `<tr><td>${esc(shortName(r))}</td>${cols.map(([k]) => `<td class="${r[k] === best[k] ? "best" : ""}">${r[k].toFixed(3)}</td>`).join("")}<td>${ms(r.mean_ms)}</td><td>${ms(r.p50_ms)}</td><td>${ms(r.p95_ms)}</td></tr>`).join("");
+  return `<div class="tablewrap"><table>${head}${body}</table></div>`;
+}
+
+function benchTable(rows) {
+  const v = (x) => (x == null ? "—" : ms(x));
+  const head = `<tr><th>Mode</th><th>Embed</th><th>Rerank</th><th>Top-K</th><th>Pool</th><th>Embed p50</th><th>FAISS p50</th><th>Rerank p50</th><th>Total p50</th><th>Total p95</th><th>QPS</th></tr>`;
+  const body = rows.map((r) => `<tr><td>${r.mode}</td><td>${r.embed_device}</td><td>${r.rerank_device}</td><td>${r.top_k}</td><td>${r.candidates}</td><td>${v(r.encode_p50_ms)}</td><td>${v(r.retrieval_p50_ms)}</td><td>${v(r.rerank_p50_ms)}</td><td>${v(r.total_p50_ms)}</td><td>${v(r.total_p95_ms)}</td><td>${r.qps.toFixed(1)}</td></tr>`).join("");
+  return `<div class="tablewrap"><table>${head}${body}</table></div>`;
+}
+
+function examplesBlock(ex) {
+  const list = (items) => `<ul class="mini">${items.map((r) => `<li class="${r.relevant ? "rel" : ""}"><span class="rank">${r.rank}</span><span class="t" title="${esc(r.title)}">${esc(r.title)}</span>${r.relevant ? '<span class="tag">✓ relevant</span>' : ""}</li>`).join("")}</ul>`;
+  return ex.examples.map((e) => `<div class="example">
+    <div><strong>${esc(e.query)}</strong> <span class="sub">· reciprocal rank ${e.rr_delta > 0 ? "+" : ""}${e.rr_delta.toFixed(2)}</span></div>
+    <div class="grid2" style="margin:6px 0 0">
+      <div><h3>Dense only</h3>${list(e.dense)}</div>
+      <div><h3>${esc(ex.compared_config)}</h3>${list(e.reranked)}</div>
+    </div></div>`).join("");
+}
+
+fetch("/api/results").then((r) => r.json()).then(({ evaluation, benchmark, examples }) => {
+  const body = $("#results-body");
+  if (!evaluation) { body.innerHTML = `<div class="empty">No evaluation yet. Run <code>python -m scripts.evaluate</code>.</div>`; return; }
+  const rows = evaluation.results;
+  const dense = rows[0];
+  const best = rows.slice(1).reduce((a, b) => (b["mrr@10"] > a["mrr@10"] ? b : a));
+  const fastest = benchmark?.results.find((r) => r.mode === "dense" && r.embed_device === "cpu" && r.top_k === 10);
+  body.innerHTML = `
+    <div class="stats">
+      <div class="card stat"><div class="v">${evaluation.num_documents.toLocaleString()}</div><div class="l">documents indexed</div></div>
+      <div class="card stat"><div class="v">${evaluation.num_queries}</div><div class="l">judged test queries</div></div>
+      <div class="card stat"><div class="v">+${best.mrr_gain_pct.toFixed(1)}%</div><div class="l">MRR@10 from reranking (${esc(shortName(best))})</div></div>
+      <div class="card stat"><div class="v">${ms(fastest ? fastest.total_p50_ms : dense.p50_ms)}</div><div class="l">p50 dense search, end to end</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Ranking quality</h2><div class="sub" style="margin-bottom:10px">SciFact ${esc(evaluation.dataset.match(/\((.*)\)/)?.[1] ?? "")} split, top-${evaluation.top_k}</div>${qualityChart(rows)}</div>
+      <div class="card"><h2>Quality vs. latency</h2><div class="sub" style="margin-bottom:10px">Each point is one configuration; reranking buys MRR with latency</div>${tradeoffChart(rows)}</div>
+    </div>
+    <div class="card" style="margin-bottom:16px"><h2>Retrieval metrics</h2><div class="sub" style="margin-bottom:10px">Per-request latency through the same pipeline the API serves (embedder: ${esc(evaluation.devices.embedder)}, reranker: ${esc(evaluation.devices.reranker)}). Dense candidate-pool recall: ${Object.entries(evaluation.candidate_pool_recall).map(([k, v]) => `R@${k} ${pct(v)}`).join(" · ")}.</div>${evalTable(rows)}</div>
+    ${benchmark ? `<div class="card" style="margin-bottom:16px"><h2>Latency benchmark</h2><div class="sub" style="margin-bottom:10px">${benchmark.num_queries} sampled queries, ${esc(benchmark.environment.machine)} · ${esc(benchmark.environment.platform)}</div>${benchTable(benchmark.results)}</div>` : ""}
+    ${examples ? `<div class="card"><h2>Where reranking changed the answer</h2><div class="sub" style="margin-bottom:10px">Real queries from the test set; highlighted rows are judged relevant</div>${examplesBlock(examples)}</div>` : ""}
+  `;
+}).catch((err) => { $("#results-body").innerHTML = `<div class="error">Could not load results: ${esc(err.message)}</div>`; });
+
+run();
+</script>
+</body>
+</html>

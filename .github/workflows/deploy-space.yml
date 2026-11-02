@@ -1,0 +1,31 @@
+name: Deploy to Hugging Face Space
+
+# Redeploys the live demo on every push to main once the HF_TOKEN secret is set.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for token
+        id: token
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: echo "present=$([ -n "$HF_TOKEN" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.present == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.token.outputs.present == 'true'
+        with:
+          python-version: "3.14"
+      - name: Upload to Space
+        if: steps.token.outputs.present == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GITHUB_REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          pip install huggingface_hub
+          python -m scripts.deploy_space

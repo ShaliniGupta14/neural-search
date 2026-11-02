@@ -1,0 +1,618 @@
+{
+  "compared_config": "Dense + rerank (pool 20)",
+  "examples": [
+    {
+      "query_id": "619",
+      "query": "Increased vessel density along with a reduction in fibrosis decreases the efficacy of chemotherapy treatments.",
+      "rr_delta": 1.0,
+      "relevant_ids": [
+        "20888849",
+        "2565138"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "10812605",
+          "title": "Fibroblast heterogeneity in the cancer wound",
+          "dense_rank": 1,
+          "dense_score": 0.4605,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "5254741",
+          "title": "The shunt problem: control of functional shunting in normal and tumour vasculature",
+          "dense_rank": 2,
+          "dense_score": 0.4513,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "6334188",
+          "title": "History of chronic comorbidity and risk of chemotherapy-induced febrile neutropenia in cancer patients not receiving G-CSF prophylaxis.",
+          "dense_rank": 3,
+          "dense_score": 0.4285,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "22621251",
+          "title": "Ly6Chi monocytes direct alternatively activated profibrotic macrophage regulation of lung fibrosis.",
+          "dense_rank": 4,
+          "dense_score": 0.4223,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "20127522",
+          "title": "Circulating tumor cells: a useful predictor of treatment efficacy in metastatic breast cancer.",
+          "dense_rank": 5,
+          "dense_score": 0.4208,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "20888849",
+          "title": "Inhibition of Hedgehog signaling enhances delivery of chemotherapy in a mouse model of pancreatic cancer.",
+          "dense_rank": 13,
+          "dense_score": 0.4032,
+          "rerank_score": -3.9882,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "6334188",
+          "title": "History of chronic comorbidity and risk of chemotherapy-induced febrile neutropenia in cancer patients not receiving G-CSF prophylaxis.",
+          "dense_rank": 3,
+          "dense_score": 0.4285,
+          "rerank_score": -4.0425,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "3559136",
+          "title": "Cancer-Associated Fibroblasts Neutralize the Anti-tumor Effect of CSF1 Receptor Blockade by Inducing PMN-MDSC Infiltration of Tumors.",
+          "dense_rank": 7,
+          "dense_score": 0.4169,
+          "rerank_score": -6.3716,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "20127522",
+          "title": "Circulating tumor cells: a useful predictor of treatment efficacy in metastatic breast cancer.",
+          "dense_rank": 5,
+          "dense_score": 0.4208,
+          "rerank_score": -6.5929,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "22621251",
+          "title": "Ly6Chi monocytes direct alternatively activated profibrotic macrophage regulation of lung fibrosis.",
+          "dense_rank": 4,
+          "dense_score": 0.4223,
+          "rerank_score": -6.8124,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "294",
+      "query": "Crossover hot spots are not found within gene promoters in Saccharomyces cerevisiae.",
+      "rr_delta": 1.0,
+      "relevant_ids": [
+        "10874408"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "17240457",
+          "title": "A comprehensive genomic binding map of gene and chromatin regulatory proteins in Saccharomyces.",
+          "dense_rank": 1,
+          "dense_score": 0.6013,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "406733",
+          "title": "Histones are incorporated in trans during reassembly of the yeast PHO5 promoter.",
+          "dense_rank": 2,
+          "dense_score": 0.5749,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "35861290",
+          "title": "Using the yeast gene deletion collection to customize gene expression.",
+          "dense_rank": 3,
+          "dense_score": 0.5696,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "2817000",
+          "title": "Histone Variant H2A.Z Marks the 5′ Ends of Both Active and Inactive Genes in Euchromatin",
+          "dense_rank": 4,
+          "dense_score": 0.5567,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "11420613",
+          "title": "Molecular mechanisms of ribosomal protein gene coregulation.",
+          "dense_rank": 5,
+          "dense_score": 0.5494,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "10874408",
+          "title": "Mapping Meiotic Single-Strand DNA Reveals a New Landscape of DNA Double-Strand Breaks in Saccharomyces cerevisiae",
+          "dense_rank": 11,
+          "dense_score": 0.542,
+          "rerank_score": -0.2971,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "2817000",
+          "title": "Histone Variant H2A.Z Marks the 5′ Ends of Both Active and Inactive Genes in Euchromatin",
+          "dense_rank": 4,
+          "dense_score": 0.5567,
+          "rerank_score": -0.7133,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "17240457",
+          "title": "A comprehensive genomic binding map of gene and chromatin regulatory proteins in Saccharomyces.",
+          "dense_rank": 1,
+          "dense_score": 0.6013,
+          "rerank_score": -1.7263,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "32638085",
+          "title": "Histone acetylation and deacetylation in yeast",
+          "dense_rank": 20,
+          "dense_score": 0.5285,
+          "rerank_score": -1.7522,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "1259280",
+          "title": "Mechanisms that Specify Promoter Nucleosome Location and Identity",
+          "dense_rank": 18,
+          "dense_score": 0.529,
+          "rerank_score": -2.2808,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "1368",
+      "query": "Vitamin D deficiency effects the term of delivery.",
+      "rr_delta": 1.0,
+      "relevant_ids": [
+        "2425364"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "9555784",
+          "title": "Vitamin d deficiency in postmenopausal women - biological correlates.",
+          "dense_rank": 1,
+          "dense_score": 0.6032,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "3150030",
+          "title": "Global vitamin D levels in relation to age, gender, skin pigmentation and latitude: an ecologic meta-regression analysis",
+          "dense_rank": 2,
+          "dense_score": 0.5966,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "36960449",
+          "title": "Estimation of the dietary requirement for vitamin D in healthy adults.",
+          "dense_rank": 3,
+          "dense_score": 0.5821,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "23267371",
+          "title": "Vitamin D: The \"sunshine\" vitamin.",
+          "dense_rank": 4,
+          "dense_score": 0.5801,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "30720103",
+          "title": "Vitamin D status: measurement, interpretation, and clinical application.",
+          "dense_rank": 5,
+          "dense_score": 0.5799,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "2425364",
+          "title": "Association between maternal serum 25-hydroxyvitamin D level and pregnancy and neonatal outcomes: systematic review and meta-analysis of observational studies.",
+          "dense_rank": 13,
+          "dense_score": 0.4877,
+          "rerank_score": 0.5262,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "23267371",
+          "title": "Vitamin D: The \"sunshine\" vitamin.",
+          "dense_rank": 4,
+          "dense_score": 0.5801,
+          "rerank_score": 0.1659,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "8856690",
+          "title": "Molecular Mechanisms of Vitamin D Action",
+          "dense_rank": 8,
+          "dense_score": 0.5077,
+          "rerank_score": -0.2272,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "13312471",
+          "title": "Vitamin D insufficiency and the blunted PTH response in established osteoporosis: the role of magnesium deficiency",
+          "dense_rank": 15,
+          "dense_score": 0.4762,
+          "rerank_score": -0.5612,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "9555784",
+          "title": "Vitamin d deficiency in postmenopausal women - biological correlates.",
+          "dense_rank": 1,
+          "dense_score": 0.6032,
+          "rerank_score": -0.9925,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "1180",
+      "query": "The PRR MDA5 is a sensor of RNA virus infection.",
+      "rr_delta": 1.0,
+      "relevant_ids": [
+        "31272411"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "24221369",
+          "title": "A Conserved Histidine in the RNA Sensor RIG-I Controls Immune Tolerance to N1-2'O-Methylated Self RNA.",
+          "dense_rank": 1,
+          "dense_score": 0.4612,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "8005007",
+          "title": "PRRSV receptors and their roles in virus infection",
+          "dense_rank": 2,
+          "dense_score": 0.4587,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "20725212",
+          "title": "Chaperoning 5S RNA assembly.",
+          "dense_rank": 3,
+          "dense_score": 0.4569,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "2566674",
+          "title": "Ribose 2′-O-methylation provides a molecular signature for the distinction of self and non-self mRNA dependent on the RNA sensor Mda5",
+          "dense_rank": 4,
+          "dense_score": 0.455,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "9161988",
+          "title": "Immune Activation with HIV Vaccines",
+          "dense_rank": 5,
+          "dense_score": 0.4481,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "31272411",
+          "title": "Immune signaling by RIG-I-like receptors.",
+          "dense_rank": 20,
+          "dense_score": 0.4077,
+          "rerank_score": 5.4003,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "44366096",
+          "title": "RIG-I-mediated antiviral responses to single-stranded RNA bearing 5'-phosphates.",
+          "dense_rank": 6,
+          "dense_score": 0.4473,
+          "rerank_score": 4.228,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "2566674",
+          "title": "Ribose 2′-O-methylation provides a molecular signature for the distinction of self and non-self mRNA dependent on the RNA sensor Mda5",
+          "dense_rank": 4,
+          "dense_score": 0.455,
+          "rerank_score": 2.6542,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "15419873",
+          "title": "Cytosolic viral sensor RIG-I is a 5'-triphosphate-dependent translocase on double-stranded RNA.",
+          "dense_rank": 15,
+          "dense_score": 0.4152,
+          "rerank_score": 1.4655,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "9591368",
+          "title": "The M/GP5 Glycoprotein Complex of Porcine Reproductive and Respiratory Syndrome Virus Binds the Sialoadhesin Receptor in a Sialic Acid-Dependent Manner",
+          "dense_rank": 10,
+          "dense_score": 0.4255,
+          "rerank_score": 0.6018,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "1337",
+      "query": "Ubiquitin ligase UBC13 generates a K63-linked polyubiquitin moiety at PCNA K164.",
+      "rr_delta": 0.9,
+      "relevant_ids": [
+        "20231138"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "29557235",
+          "title": "Evolution and function of ubiquitin-like protein-conjugation systems",
+          "dense_rank": 1,
+          "dense_score": 0.5715,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "13277623",
+          "title": "FBW7 ubiquitin ligase: a tumour suppressor at the crossroads of cell division, growth and differentiation",
+          "dense_rank": 2,
+          "dense_score": 0.5262,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "19149247",
+          "title": "Breaking the chains: structure and function of the deubiquitinases",
+          "dense_rank": 3,
+          "dense_score": 0.5218,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "6422576",
+          "title": "Ubiquitin-dependent protein degradation.",
+          "dense_rank": 4,
+          "dense_score": 0.5213,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "6784372",
+          "title": "Multiple degradation pathways regulate versatile CIP/KIP CDK inhibitors.",
+          "dense_rank": 5,
+          "dense_score": 0.5207,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "20231138",
+          "title": "Replication Fork Slowing and Reversal upon DNA Damage Require PCNA Polyubiquitination and ZRANB3 DNA Translocase Activity",
+          "dense_rank": 10,
+          "dense_score": 0.4779,
+          "rerank_score": 3.0219,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "7820043",
+          "title": "Key role of Ubc5 and lysine-63 polyubiquitination in viral activation of IRF3.",
+          "dense_rank": 12,
+          "dense_score": 0.466,
+          "rerank_score": 2.677,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "21562657",
+          "title": "Molecular mechanism of BST2/tetherin downregulation by K5/MIR2 of Kaposi's sarcoma-associated herpesvirus.",
+          "dense_rank": 17,
+          "dense_score": 0.4479,
+          "rerank_score": 0.6758,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "12225214",
+          "title": "Ubiquitination on nonlysine residues by a viral E3 ubiquitin ligase.",
+          "dense_rank": 8,
+          "dense_score": 0.4847,
+          "rerank_score": -0.2176,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "6422576",
+          "title": "Ubiquitin-dependent protein degradation.",
+          "dense_rank": 4,
+          "dense_score": 0.5213,
+          "rerank_score": -0.9332,
+          "relevant": false
+        }
+      ]
+    },
+    {
+      "query_id": "1278",
+      "query": "The treatment of cancer patients with co-IR blockade does not cause any adverse autoimmune events.",
+      "rr_delta": -0.8333,
+      "relevant_ids": [
+        "11335781"
+      ],
+      "dense": [
+        {
+          "rank": 1,
+          "document_id": "11335781",
+          "title": "Is autoimmunity the Achilles' heel of cancer immunotherapy?",
+          "dense_rank": 1,
+          "dense_score": 0.5525,
+          "rerank_score": null,
+          "relevant": true
+        },
+        {
+          "rank": 2,
+          "document_id": "22635278",
+          "title": "Immunotherapy of metastatic kidney cancer.",
+          "dense_rank": 2,
+          "dense_score": 0.4489,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "12705056",
+          "title": "Cytokines and anti-cytokine biologicals in autoimmunity: present and future.",
+          "dense_rank": 3,
+          "dense_score": 0.4403,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "22968257",
+          "title": "Histone/protein deacetylase inhibitors increase suppressive functions of human FOXP3+ Tregs.",
+          "dense_rank": 4,
+          "dense_score": 0.435,
+          "rerank_score": null,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "4468861",
+          "title": "Radiation and Dual Checkpoint Blockade Activates Non-Redundant Immune Mechanisms in Cancer",
+          "dense_rank": 5,
+          "dense_score": 0.4334,
+          "rerank_score": null,
+          "relevant": false
+        }
+      ],
+      "reranked": [
+        {
+          "rank": 1,
+          "document_id": "1454773",
+          "title": "In vitro characterization of the anti-PD-1 antibody nivolumab, BMS-936558, and in vivo toxicology in non-human primates.",
+          "dense_rank": 13,
+          "dense_score": 0.3887,
+          "rerank_score": 1.6946,
+          "relevant": false
+        },
+        {
+          "rank": 2,
+          "document_id": "4468861",
+          "title": "Radiation and Dual Checkpoint Blockade Activates Non-Redundant Immune Mechanisms in Cancer",
+          "dense_rank": 5,
+          "dense_score": 0.4334,
+          "rerank_score": -0.7675,
+          "relevant": false
+        },
+        {
+          "rank": 3,
+          "document_id": "1900152",
+          "title": "Beyond melanoma: inhibiting the PD-1/PD-L1 pathway in solid tumors.",
+          "dense_rank": 16,
+          "dense_score": 0.3802,
+          "rerank_score": -2.3371,
+          "relevant": false
+        },
+        {
+          "rank": 4,
+          "document_id": "3935126",
+          "title": "Axicabtagene Ciloleucel CAR T‐Cell Therapy in Refractory Large B‐Cell Lymphoma",
+          "dense_rank": 10,
+          "dense_score": 0.3908,
+          "rerank_score": -3.0124,
+          "relevant": false
+        },
+        {
+          "rank": 5,
+          "document_id": "22635278",
+          "title": "Immunotherapy of metastatic kidney cancer.",
+          "dense_rank": 2,
+          "dense_score": 0.4489,
+          "rerank_score": -3.9021,
+          "relevant": false
+        }
+      ]
+    }
+  ]
+}
