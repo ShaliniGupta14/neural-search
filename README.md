@@ -12,8 +12,8 @@ Two-stage neural retrieval for scientific claims: a bi-encoder (`all-MiniLM-L6-v
 
 FAISS search over all 5,183 documents takes 0.26 ms p50; the full dense path, query embedding included, runs at 4.7 ms p50 (about 207 queries/s on one process).
 
+**Live demo:** <https://neural-search-one.vercel.app> (search UI; API docs at [`/docs`](https://neural-search-one.vercel.app/docs))
 **Results page:** <https://shalinigupta14.github.io/neural-search/> (charts, benchmark tables, and per-query before/after examples)
-<!-- LIVE_DEMO -->
 
 ## Problem
 
@@ -42,8 +42,10 @@ This project combines them the standard way (retrieve with the fast model, reran
 | `app/reranker.py` | `CrossEncoderReranker`: rescores candidates |
 | `app/pipeline.py` | `SearchEngine`: dense retrieval + optional reranking with per-stage timings |
 | `app/metrics.py` | Recall@K, MRR, nDCG, latency percentiles |
+| `app/core.py` | Result types and validation shared by both backends (no torch import) |
+| `app/onnx_engine.py` | `OnnxSearchEngine`: the same pipeline on ONNX Runtime, for serverless deployment |
 | `app/models.py`, `app/api.py` | Pydantic schemas and the FastAPI app (+ demo UI in `app/static/`) |
-| `scripts/` | `build_index`, `evaluate`, `benchmark`, `fix_macos_openmp` |
+| `scripts/` | `build_index`, `evaluate`, `benchmark`, `export_onnx`, `build_vercel`, `build_showcase`, `fix_macos_openmp` |
 
 The API, the evaluation, and the benchmark all call the same `SearchEngine.search()`, so the reported metrics describe exactly what the service does.
 
@@ -200,14 +202,32 @@ Full table: `results/benchmark.json`.
 
 ## Deployment
 
-The live demo runs on a free **Hugging Face Docker Space** (2 vCPU, 16 GB RAM, no GPU). The `Dockerfile` installs CPU-only torch (avoiding about 3 GB of CUDA libraries) and builds the FAISS index and downloads both models at image build time, so the container starts in seconds.
+The live demo is a **Vercel serverless Python function** on the free Hobby plan (1 vCPU, 2 GB). PyTorch alone is larger than Vercel's function size limit, so the deployment runs the same models through **ONNX Runtime** (`app/onnx_engine.py`) behind the same FastAPI app and UI. It uses no torch or FAISS: exact cosine search over the 5,183 vectors is a single NumPy matrix-vector product.
 
 ```bash
-hf auth login                       # once; needs a token with write access
-python -m scripts.deploy_space      # creates/updates <user>/neural-search and triggers a build
+python -m scripts.export_onnx --reranker-variant quint8_avx2   # vectors from the FAISS index + ONNX models
+python -m scripts.build_vercel                                  # self-contained project in deploy/vercel/
+vercel deploy --prod --cwd deploy/vercel
 ```
 
-After a repository secret `HF_TOKEN` is added, `.github/workflows/deploy-space.yml` redeploys on every push to `main`. The results page in `docs/` is served by GitHub Pages. On free CPU hardware, reranking 20 candidates is slower than the Apple Silicon numbers above, and the Space sleeps after 48 hours without traffic; the first visit after that takes about a minute to wake it.
+**Parity.** The fp32 ONNX embedder reproduces the torch query vectors (cosine 1.0000) and dense rankings exactly; `tests/test_onnx.py` checks this. Retrieval in production is identical to the evaluated system.
+
+**Fitting the reranker into one vCPU.** The fp32 cross-encoder over 20 full-length (512-token) abstracts took about 7.5 s per query on Vercel. Every option below was measured on all 300 test queries before choosing:
+
+| Reranker | Max tokens | Pool | MRR@10 | nDCG@10 |
+|---|---|---|---|---|
+| fp32 (published config) | 512 | 20 | 0.658 | 0.689 |
+| fp32 | 256 | 20 | 0.654 | 0.685 |
+| fp32 | 192 | 20 | 0.637 | 0.671 |
+| fp32 | 128 | 20 | 0.598 | 0.637 |
+| **int8 (`quint8_avx2`), deployed** | **256** | **20** | **0.658** | **0.686** |
+| int8 | 256 | 10 | 0.650 | 0.680 |
+
+Truncating to 128 tokens makes reranking *worse than no reranking* (dense MRR@10 is 0.607): the cross-encoder needs the part of the abstract that states the finding. The int8 model at 256 tokens matches the published MRR@10.
+
+**Live latency** (Vercel Hobby, warm function, reranked, pool 20): about 5 ms query embedding, 1 ms retrieval, and 2.1 s reranking. With a pool of 10, reranking takes 1.1 s. Pinning ONNX Runtime to one thread (`ORT_INTRA_OP_THREADS=1`) cut reranking from 2.5 s to 2.1 s, because the function's CPU quota is smaller than the core count the runtime detects. The first request after the function has been idle adds a few seconds of cold start.
+
+The `Dockerfile` packages the full torch + FAISS service for any container host (for example Google Cloud Run). The results page in `docs/` is served by GitHub Pages.
 
 ## Tests
 
@@ -215,7 +235,7 @@ After a repository secret `HF_TOKEN` is added, `.github/workflows/deploy-space.y
 pytest
 ```
 
-Covers input validation (empty, whitespace-only, and non-string queries; out-of-range and non-integer `top_k`), every index-loading failure (missing files, invalid JSON, count and field mismatches, dimension mismatch, unreadable index), the metric implementations, real-index behavior (unit-norm float32 query vectors, result counts, score ordering, determinism, reranked results drawn from the candidate pool), and the API (health, response schema, 422 handling, demo page, and an end-to-end search against the real models). Tests that need the built index skip cleanly if it is absent.
+Covers input validation (empty, whitespace-only, and non-string queries; out-of-range and non-integer `top_k`), every index-loading failure (missing files, invalid JSON, count and field mismatches, dimension mismatch, unreadable index), the metric implementations, real-index behavior (unit-norm float32 query vectors, result counts, score ordering, determinism, reranked results drawn from the candidate pool), and the API (health, response schema, 422 handling, demo page, and an end-to-end search against the real models), and ONNX-vs-torch parity of the deployed engine. Tests that need the built index or ONNX bundle skip cleanly if they are absent.
 
 ## Project structure
 
@@ -223,16 +243,17 @@ Covers input validation (empty, whitespace-only, and non-string queries; out-of-
 neural-search/
 ├── app/
 │   ├── config.py  dataset.py  search.py  reranker.py  pipeline.py  metrics.py
-│   ├── models.py  api.py
+│   ├── core.py  onnx_engine.py  models.py  api.py
 │   └── static/index.html          # demo UI
 ├── scripts/
 │   ├── build_index.py  evaluate.py  benchmark.py  build_showcase.py  fix_macos_openmp.py  common.py
+│   ├── export_onnx.py  build_vercel.py
 ├── docs/                          # results showcase (index.html is generated; GitHub Pages ready)
 ├── results/                       # committed evaluation + benchmark output
-├── data/                          # generated index (git-ignored)
+├── data/                          # generated index and ONNX bundle (git-ignored)
 ├── tests/
-│   ├── conftest.py  test_search.py  test_api.py
-├── .github/workflows/             # CI tests + Space deployment
+│   ├── conftest.py  test_search.py  test_api.py  test_onnx.py
+├── .github/workflows/ci.yml       # tests on every push
 ├── Dockerfile  requirements.txt  pyproject.toml  LICENSE
 ```
 
@@ -240,6 +261,6 @@ neural-search/
 
 - **Hybrid retrieval:** fuse BM25 with dense scores (reciprocal rank fusion) to recover exact-term matches such as gene names and drug codes that MiniLM misses.
 - **Domain-adapted models:** swap in a biomedical bi-encoder or cross-encoder and compare on the same harness.
-- **Cheaper reranking:** truncate abstracts, distill the cross-encoder, or export to ONNX / Core ML; or rerank adaptively only when dense scores are close.
+- **Cheaper reranking:** distill the cross-encoder, or rerank adaptively only when the top dense scores are close.
 - **Scale:** move to `IndexHNSWFlat` or IVF-PQ for corpora in the millions and report the recall/latency curve against the exact baseline.
 - **Serving:** request batching for the reranker and a result cache for repeated queries.

@@ -8,6 +8,7 @@ uvicorn==0.54.0
 numpy==2.5.4
 pandas==3.1.0
 tqdm==4.70.1
+onnxruntime==1.31.1
 
 # testing
 pytest==9.2.0

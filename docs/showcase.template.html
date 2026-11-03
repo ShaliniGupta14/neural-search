@@ -105,6 +105,11 @@ td.best { color: var(--accent); font-weight: 600; }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; font: 13px/1.6 var(--font-mono); color: var(--ink); }
 pre .c { color: var(--ink-3); }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 500; font-size: 14.5px; text-decoration: none; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .stack { display: flex; flex-wrap: wrap; gap: 6px; }
 .stack span { font: 12.5px var(--font-mono); padding: 3px 9px; border-radius: 6px; background: var(--chip); color: var(--ink-2); }
 footer { font-size: 13px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
@@ -117,6 +122,11 @@ footer { font-size: 13px; color: var(--ink-3); border-top: 1px solid var(--line)
     <div class="eyebrow">Information retrieval · BEIR SciFact</div>
     <h1>Neural search over scientific claims</h1>
     <p>A two-stage retriever: a MiniLM bi-encoder with an exact FAISS index finds candidates in milliseconds, then a cross-encoder rereads each claim–abstract pair to put the evidence first. Every number on this page was measured on the SciFact test set, not estimated.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://neural-search-one.vercel.app" target="_blank" rel="noopener">Try the live search</a>
+      <a class="btn" href="https://github.com/ShaliniGupta14/neural-search" target="_blank" rel="noopener">Source on GitHub</a>
+      <a class="btn" href="https://neural-search-one.vercel.app/docs" target="_blank" rel="noopener">API docs</a>
+    </div>
     <div class="stack" aria-label="Tech stack"><span>PyTorch</span><span>Sentence Transformers</span><span>FAISS IndexFlatIP</span><span>FastAPI</span><span>Hugging Face Datasets</span><span>Apple MPS</span><span>pytest</span></div>
     <div class="figs" id="figs"></div>
   </header>
@@ -212,7 +222,7 @@ python -m scripts.build_index         <span class="c"># 5,183 abstracts → 384-
 python -m scripts.evaluate            <span class="c"># 300 test claims, dense vs. reranked</span>
 python -m scripts.benchmark           <span class="c"># per-stage latency, CPU vs. MPS</span>
 uvicorn app.api:app --port 8000       <span class="c"># demo UI at /, OpenAPI at /docs</span>
-pytest                                <span class="c"># 47 tests</span></pre>
+pytest                                <span class="c"># 50 tests</span></pre>
   </section>
 
   <footer id="foot"></footer>
@@ -408,6 +418,8 @@ $("#findings").innerHTML = [
    mps20 && denseMps
      ? `MPS reranks ${(cpu20.rerank_p50_ms / mps20.rerank_p50_ms).toFixed(1)}× faster than CPU (${ms(mps20.rerank_p50_ms)} vs. ${ms(cpu20.rerank_p50_ms)}), but single-query embedding on MPS is ${(denseMps.encode_p50_ms / denseCpu.encode_p50_ms).toFixed(1)}× slower with a ${ms(denseMps.total_p95_ms)} p95 tail.`
      : "Reranking and embedding were benchmarked separately per device."],
+  ["Deployed serverless without PyTorch",
+   "The live demo runs on Vercel's free tier through ONNX Runtime. The fp32 embedder reproduces the torch vectors exactly; an int8 reranker reading 256 tokens per abstract keeps MRR@10 at 0.658 on the test set while fitting one vCPU (about 2.1 s per reranked query). Cutting to 128 tokens made reranking worse than none."],
   ["Known failure mode: negation",
    "The worst regression is a negated claim. A cross-encoder trained on web search relevance rewards topical overlap, which a claim-verification task needs to go beyond. A domain-tuned reranker or hybrid scoring is the next step."],
 ].map(([t, p]) => `<div class="finding"><strong>${t}</strong><p>${p}</p></div>`).join("");

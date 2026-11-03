@@ -3,7 +3,7 @@ from dataclasses import replace
 from sentence_transformers import CrossEncoder
 
 from app.config import RERANKER_MODEL_NAME, resolve_device
-from app.search import SearchResult
+from app.core import SearchResult
 
 
 class CrossEncoderReranker:

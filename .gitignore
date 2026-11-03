@@ -7,3 +7,5 @@ __pycache__/
 # Generated artifacts (rebuild with: python -m scripts.build_index)
 data/*
 !data/.gitkeep
+
+deploy/

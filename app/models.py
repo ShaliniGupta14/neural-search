@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.config import MAX_CANDIDATES, MAX_TOP_K
+from app.core import MAX_CANDIDATES, MAX_TOP_K
 
 
 class SearchRequest(BaseModel):

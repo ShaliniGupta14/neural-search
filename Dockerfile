@@ -1,4 +1,4 @@
-# CPU-only image for Hugging Face Spaces (or any Docker host).
+# CPU-only image of the full torch + FAISS service, for any Docker host (e.g. Google Cloud Run).
 # The index and both models are baked in at build time so the container starts in seconds.
 FROM python:3.14-slim
 

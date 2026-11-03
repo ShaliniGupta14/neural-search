@@ -1,16 +1,8 @@
 import time
-from dataclasses import dataclass, field
 
-from app.config import MAX_CANDIDATES, MAX_TOP_K
+from app.core import SearchOutput, validate_query, validate_search_args
 from app.reranker import CrossEncoderReranker
-from app.search import DenseSearcher, InvalidQueryError, SearchResult, validate_query, validate_top_k
-
-
-@dataclass
-class SearchOutput:
-    results: list[SearchResult]
-    reranked: bool
-    timings_ms: dict[str, float] = field(default_factory=dict)
+from app.search import DenseSearcher
 
 
 class SearchEngine:
@@ -39,13 +31,7 @@ class SearchEngine:
 
     def search(self, query: str, top_k: int = 10, rerank: bool = True, candidates: int = 50) -> SearchOutput:
         query = validate_query(query)
-        top_k = validate_top_k(top_k, MAX_TOP_K)
-        if rerank and self.reranker is None:
-            raise InvalidQueryError("Reranking requested but no reranker is loaded.")
-        if rerank:
-            candidates = validate_top_k(candidates, MAX_CANDIDATES)
-            if candidates < top_k:
-                raise InvalidQueryError("candidates must be >= top_k when reranking.")
+        top_k, candidates = validate_search_args(top_k, rerank, candidates, self.reranker is not None)
 
         start = time.perf_counter()
         vector = self.searcher.encode([query])

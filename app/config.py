@@ -3,6 +3,8 @@ from pathlib import Path
 
 import torch
 
+from app.core import EMBEDDING_MODEL_NAME, MAX_CANDIDATES, MAX_TOP_K, RERANKER_MODEL_NAME  # noqa: F401
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 RESULTS_DIR = PROJECT_ROOT / "results"
@@ -13,12 +15,8 @@ INDEX_INFO_PATH = DATA_DIR / "index_info.json"
 
 DATASET_NAME = "BeIR/scifact"
 QRELS_DATASET_NAME = "BeIR/scifact-qrels"
-EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-RERANKER_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 SEED = 42
-MAX_TOP_K = 100
-MAX_CANDIDATES = 200
 
 
 def resolve_device(requested: str = "auto") -> str:

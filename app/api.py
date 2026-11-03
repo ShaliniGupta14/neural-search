@@ -3,6 +3,10 @@
 Run (from the project root):
     uvicorn app.api:app --port 8000
 Then open http://127.0.0.1:8000 for the demo UI or /docs for the OpenAPI explorer.
+
+NEURAL_SEARCH_BACKEND selects the engine: "torch" (default; Sentence Transformers + FAISS) or
+"onnx" (ONNX Runtime, used for the serverless deployment). This module imports neither at load
+time so the ONNX deployment never pulls in torch.
 """
 
 import json
@@ -10,41 +14,66 @@ import logging
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Protocol
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
-from app.config import EMBEDDING_MODEL_NAME, PROJECT_ROOT, RERANKER_MODEL_NAME, RESULTS_DIR
+from app.core import EMBEDDING_MODEL_NAME, RERANKER_MODEL_NAME, InvalidQueryError, SearchOutput
 from app.models import HealthResponse, SearchRequest, SearchResponse, SearchResultItem
-from app.pipeline import SearchEngine
-from app.search import InvalidQueryError
 
 logger = logging.getLogger("neural_search")
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATIC_DIR = PROJECT_ROOT / "app" / "static"
+RESULTS_DIR = PROJECT_ROOT / "results"
 RESULT_FILES = {"evaluation": "evaluation.json", "benchmark": "benchmark.json", "examples": "examples.json"}
 
 
-def create_app(engine: SearchEngine | None = None) -> FastAPI:
+class Engine(Protocol):
+    reranker: object | None
+    devices: dict[str, str]
+
+    def search(self, query: str, top_k: int, rerank: bool, candidates: int) -> SearchOutput: ...
+
+
+def load_engine() -> Engine:
+    backend = os.getenv("NEURAL_SEARCH_BACKEND", "torch")
+    if backend == "onnx":
+        from app.onnx_engine import OnnxSearchEngine
+
+        return OnnxSearchEngine.load()
+    if backend == "torch":
+        from app.pipeline import SearchEngine
+
+        return SearchEngine.load(
+            embed_device=os.getenv("EMBED_DEVICE", "cpu"),
+            rerank_device=os.getenv("RERANK_DEVICE", "auto"),
+        )
+    raise ValueError(f"Unknown NEURAL_SEARCH_BACKEND '{backend}'. Use torch or onnx.")
+
+
+def create_app(engine: Engine | None = None) -> FastAPI:
     """Build the app. Pass an engine to skip model loading (used by tests)."""
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        if engine is not None:
-            app.state.engine = engine
-        else:
-            # Loading fails loudly (missing index, corrupt metadata, missing models) so the
-            # server never starts in a half-working state.
-            app.state.engine = SearchEngine.load(
-                embed_device=os.getenv("EMBED_DEVICE", "cpu"),
-                rerank_device=os.getenv("RERANK_DEVICE", "auto"),
-            )
+        # Loading fails loudly (missing index, corrupt metadata, missing models) so the
+        # server never starts in a half-working state.
+        app.state.engine = engine if engine is not None else load_engine()
         logger.info("Search engine ready: %s", app.state.engine.devices)
         yield
 
+    def get_engine(request: Request) -> Engine:
+        # Serverless runtimes may skip lifespan events; load on first request in that case.
+        if getattr(request.app.state, "engine", None) is None:
+            request.app.state.engine = engine if engine is not None else load_engine()
+        return request.app.state.engine
+
     app = FastAPI(
         title="Neural Search: SciFact",
-        description="Dense retrieval (MiniLM + FAISS) with cross-encoder reranking.",
+        description="Dense retrieval (MiniLM) with cross-encoder reranking over BEIR SciFact.",
         version="1.0.0",
         lifespan=lifespan,
     )
@@ -55,7 +84,7 @@ def create_app(engine: SearchEngine | None = None) -> FastAPI:
 
     @app.get("/health", response_model=HealthResponse)
     def health(request: Request) -> HealthResponse:
-        engine: SearchEngine = request.app.state.engine
+        engine = get_engine(request)
         return HealthResponse(
             status="ok",
             num_documents=engine.searcher.num_documents,
@@ -66,7 +95,7 @@ def create_app(engine: SearchEngine | None = None) -> FastAPI:
 
     @app.post("/search", response_model=SearchResponse)
     def search(body: SearchRequest, request: Request) -> SearchResponse:
-        engine: SearchEngine = request.app.state.engine
+        engine = get_engine(request)
         output = engine.search(body.query, top_k=body.top_k, rerank=body.rerank, candidates=body.candidates)
         return SearchResponse(
             query=body.query,

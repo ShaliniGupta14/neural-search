@@ -1,5 +1,4 @@
 import json
-from dataclasses import dataclass
 from pathlib import Path
 
 import faiss
@@ -10,10 +9,10 @@ from app.config import (
     DOCUMENTS_PATH,
     INDEX_INFO_PATH,
     INDEX_PATH,
-    MAX_TOP_K,
     check_openmp_runtime,
     resolve_device,
 )
+from app.core import InvalidQueryError, SearchResult, validate_query, validate_top_k  # noqa: F401
 
 
 class IndexNotFoundError(FileNotFoundError):
@@ -22,42 +21,6 @@ class IndexNotFoundError(FileNotFoundError):
 
 class IndexCorruptedError(RuntimeError):
     pass
-
-
-class InvalidQueryError(ValueError):
-    pass
-
-
-@dataclass(frozen=True)
-class SearchResult:
-    document_id: str
-    title: str
-    text: str
-    dense_score: float
-    dense_rank: int
-    rerank_score: float | None = None
-
-    @property
-    def score(self) -> float:
-        return self.rerank_score if self.rerank_score is not None else self.dense_score
-
-
-def validate_query(query: object) -> str:
-    if not isinstance(query, str):
-        raise InvalidQueryError("Query must be a string.")
-    query = query.strip()
-    if not query:
-        raise InvalidQueryError("Query must not be empty.")
-    return query
-
-
-def validate_top_k(top_k: object, maximum: int = MAX_TOP_K) -> int:
-    # bool is a subclass of int; reject it explicitly.
-    if isinstance(top_k, bool) or not isinstance(top_k, int):
-        raise InvalidQueryError("top_k must be an integer.")
-    if not 1 <= top_k <= maximum:
-        raise InvalidQueryError(f"top_k must be between 1 and {maximum}.")
-    return top_k
 
 
 def _load_documents(path: Path, expected_count: int) -> list[dict[str, str]]:
